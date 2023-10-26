@@ -64,7 +64,10 @@ const HomeScreen = ({navigation}) => {
         }
         renderItem={({item}) => (
           <View>
-            <Pressable onPress={() => navigation.navigate('HomeDetail')}>
+            <Pressable
+              onPress={() =>
+                navigation.navigate('HomeDetail', {image_data: item?.xt_image})
+              }>
               <Image
                 style={{
                   height: 150,
