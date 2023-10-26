@@ -1,60 +1,20 @@
-import {
-  View,
-  Text,
-  FlatList,
-  ScrollView,
-  SafeAreaView,
-  Image,
-  Dimensions,
-} from 'react-native';
-import React, {useEffect, useState} from 'react';
+import * as React from 'react';
+import {NavigationContainer} from '@react-navigation/native';
+import HomeScreen from './src/screens/HomeScreen';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import HomeDetailScreen from './src/screens/HomeDetailScreen';
 
-const App = () => {
-  const [images_data, setImagesData] = useState([]);
-  const windowWidth = Dimensions.get('window').width;
-  const windowHeight = Dimensions.get('window').height;
+const Stack = createNativeStackNavigator();
 
-  const get_data = () => {
-    var formdata = new FormData();
-    formdata.append('user_id', '108');
-    formdata.append('offset', '0');
-    formdata.append('type', 'popular');
-
-    var requestOptions = {
-      method: 'POST',
-      body: formdata,
-      redirect: 'follow',
-    };
-
-    fetch('https://dev3.xicom.us/xttest/getdata.php', requestOptions)
-      .then(response => response.json())
-      .then(result => setImagesData(result?.images))
-      .catch(error => console.log('error', error));
-  };
-
-  useEffect(() => {
-    get_data();
-  }, []);
-
+function App() {
   return (
-    <SafeAreaView style={{flex: 1, justifyContent: 'center'}}>
-      <FlatList
-        data={images_data}
-        keyExtractor={item => item.id}
-        renderItem={({item}) => (
-          <View>
-            <Image
-              style={{
-                height: 50,
-                width: 50,
-              }}
-              source={{uri: item?.xt_image}}
-            />
-          </View>
-        )}
-      />
-    </SafeAreaView>
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="HomeDetail" component={HomeDetailScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
-};
+}
 
 export default App;
