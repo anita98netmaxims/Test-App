@@ -17,16 +17,15 @@ const HomeScreen = ({navigation}) => {
   const windowWidth = Dimensions.get('window').width;
   const windowHeight = Dimensions.get('window').height;
 
-  const [visibleImages, setVisibleImages] = useState(3);
-
-  const loadMoreImages = () => {
-    setVisibleImages(visibleImages + 3);
-  };
+  const [page, setPage] = useState(0);
+  const imagesPerPage = 4;
+  const startIdx = (page - 1) * imagesPerPage;
+  const endIdx = startIdx + imagesPerPage;
 
   const get_data = () => {
     var formdata = new FormData();
     formdata.append('user_id', '108');
-    formdata.append('offset', '0');
+    formdata.append('offset', page);
     formdata.append('type', 'popular');
 
     var requestOptions = {
@@ -37,26 +36,23 @@ const HomeScreen = ({navigation}) => {
 
     fetch('https://dev3.xicom.us/xttest/getdata.php', requestOptions)
       .then(response => response.json())
-      .then(result => setImagesData(result?.images))
+      .then(result => setImagesData([...images_data, ...result?.images]))
       .catch(error => console.log('error', error));
   };
 
   useEffect(() => {
     get_data();
-  }, []);
+  }, [page]);
 
-  const LoadMoreButton = ({onPress}) => {
-    console.log('load more');
-    return (
-      <TouchableOpacity style={styles.button} onPress={onPress}>
-        <Text style={styles.text}>Load More</Text>
-      </TouchableOpacity>
-    );
+  const loadMoreImages = () => {
+    setPage(prevState => prevState + 1);
   };
 
   return (
     <SafeAreaView style={{flex: 1, justifyContent: 'center'}}>
       <FlatList
+        data={images_data}
+        keyExtractor={(item, index) => index.toString()}
         ItemSeparatorComponent={
           <>
             <View
@@ -66,8 +62,6 @@ const HomeScreen = ({navigation}) => {
             />
           </>
         }
-        data={images_data}
-        keyExtractor={item => item.id}
         renderItem={({item}) => (
           <View>
             <Pressable onPress={() => navigation.navigate('HomeDetail')}>
@@ -82,11 +76,10 @@ const HomeScreen = ({navigation}) => {
           </View>
         )}
       />
-      {visibleImages < images_data.length && (
-        <TouchableOpacity style={styles.button} onPress={loadMoreImages}>
-          <Text style={styles.text}>Load More</Text>
-        </TouchableOpacity>
-      )}
+
+      <TouchableOpacity style={styles.button} onPress={loadMoreImages}>
+        <Text style={styles.text}>Load More</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };
