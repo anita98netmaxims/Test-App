@@ -7,6 +7,8 @@ import {
   Image,
   Dimensions,
   Pressable,
+  TouchableOpacity,
+  StyleSheet,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 
@@ -14,6 +16,12 @@ const HomeScreen = ({navigation}) => {
   const [images_data, setImagesData] = useState([]);
   const windowWidth = Dimensions.get('window').width;
   const windowHeight = Dimensions.get('window').height;
+
+  const [visibleImages, setVisibleImages] = useState(3);
+
+  const loadMoreImages = () => {
+    setVisibleImages(visibleImages + 3);
+  };
 
   const get_data = () => {
     var formdata = new FormData();
@@ -36,6 +44,15 @@ const HomeScreen = ({navigation}) => {
   useEffect(() => {
     get_data();
   }, []);
+
+  const LoadMoreButton = ({onPress}) => {
+    console.log('load more');
+    return (
+      <TouchableOpacity style={styles.button} onPress={onPress}>
+        <Text style={styles.text}>Load More</Text>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={{flex: 1, justifyContent: 'center'}}>
@@ -65,8 +82,25 @@ const HomeScreen = ({navigation}) => {
           </View>
         )}
       />
+      {visibleImages < images_data.length && (
+        <TouchableOpacity style={styles.button} onPress={loadMoreImages}>
+          <Text style={styles.text}>Load More</Text>
+        </TouchableOpacity>
+      )}
     </SafeAreaView>
   );
 };
 
 export default HomeScreen;
+
+const styles = StyleSheet.create({
+  button: {
+    backgroundColor: 'blue',
+    padding: 10,
+    alignItems: 'center',
+    margin: 10,
+  },
+  text: {
+    color: 'white',
+  },
+});
