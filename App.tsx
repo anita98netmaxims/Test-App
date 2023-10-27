@@ -10,8 +10,20 @@ function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator>
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="HomeDetail" component={HomeDetailScreen} />
+        <Stack.Screen
+          options={{
+            headerShown: false,
+          }}
+          name="Home"
+          component={HomeScreen}
+        />
+        <Stack.Screen
+          options={{
+            title: 'Detail Screen',
+          }}
+          name="HomeDetail"
+          component={HomeDetailScreen}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

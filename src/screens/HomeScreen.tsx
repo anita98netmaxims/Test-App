@@ -63,15 +63,22 @@ const HomeScreen = ({navigation}) => {
           </>
         }
         renderItem={({item}) => (
-          <View>
+          <View
+          style={{
+            alignItems:'center'
+          }}
+          
+          >
             <Pressable
               onPress={() =>
                 navigation.navigate('HomeDetail', {image_data: item?.xt_image})
               }>
               <Image
                 style={{
-                  height: 150,
-                  width: windowWidth,
+                  height: 250,
+                  width: windowWidth*0.9,
+                  resizeMode:'stretch',
+                  
                 }}
                 source={{uri: item?.xt_image}}
               />
