@@ -10,12 +10,16 @@ import {
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import CustomTextInput from '../components/CustomTextInput';
+import {useNavigation} from '@react-navigation/native';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
 
-const HomeDetailScreen = ({route, navigation}) => {
+const HomeDetailScreen = ({route}) => {
   const image = route?.params?.image_data;
+
+  const navigation = useNavigation();
+
   const [loader, setLoader] = useState(false);
   interface ValidationErrors {
     text?: string;
@@ -44,10 +48,10 @@ const HomeDetailScreen = ({route, navigation}) => {
 
     const errors: ValidationErrors = {};
     if (firstname.trim() === '' || !nameRegex.test(firstname)) {
-      errors.firstname = 'First Name is required.';
+      errors.firstname = 'Please enter a valid first name';
     }
     if (lastname.trim() === '' || !nameRegex.test(lastname)) {
-      errors.lastname = 'Last Name is required.';
+      errors.lastname = 'Please enter a valid last name';
     }
     if (email.trim() === '') {
       errors.text = 'Email-Id is required.';
@@ -68,23 +72,38 @@ const HomeDetailScreen = ({route, navigation}) => {
   };
 
   const handleSubmit = async () => {
+    const image_url = image.replace('http://', 'https://');
+    console.log(image_url, 'images...');
+
     if (Object.keys(handle_validation()).length === 0) {
       try {
-        const responseImage = await fetch(image);
+        const responseImage = await fetch(image_url);
+
         const blob = await responseImage.blob();
+
+        blob._data.name = 'image.jpg';
+        blob._data.type = 'image/jpeg';
 
         var formdata = new FormData();
         formdata.append('first_name', firstname);
         formdata.append('last_name', lastname);
         formdata.append('email', email);
         formdata.append('phone', phone);
-        formdata.append('user_image', blob._data, 'image.jpg');
+        // formdata.append('user_image', blob?._data, 'image.jpg');
+        // formdata.append('user_image', blob._data, 'image.jpg');
+        formdata.append('user_image', {
+          uri: image_url,
+          type: blob._data.type,
+          name: blob._data.name,
+        });
 
+        console.log(blob);
         var requestOptions = {
           method: 'POST',
           body: formdata,
           redirect: 'follow',
           headers: {
+            Accept: 'application/json',
             'Content-Type': 'multipart/form-data',
           },
         };
@@ -99,8 +118,10 @@ const HomeDetailScreen = ({route, navigation}) => {
         }
         const responseData = await responseFormData.json();
         console.log('Response:', responseData);
-        Alert.alert(responseData?.message);
-        navigation?.goBack();
+        if (responseData?.status === 'success') {
+          Alert.alert(responseData?.message);
+          navigation?.goBack();
+        }
       } catch (error) {
         console.error('Error:', error);
         Alert.alert(error?.message);
