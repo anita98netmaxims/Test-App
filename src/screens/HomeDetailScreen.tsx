@@ -13,7 +13,8 @@ import CustomTextInput from '../components/CustomTextInput';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
-const HomeDetailScreen = ({route}) => {
+
+const HomeDetailScreen = ({route, navigation}) => {
   const image = route?.params?.image_data;
   const [loader, setLoader] = useState(false);
   interface ValidationErrors {
@@ -34,6 +35,7 @@ const HomeDetailScreen = ({route}) => {
     {},
   );
 
+  const nameRegex = /^[a-zA-Z]+$/;
   const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
   const phoneRegex = /^[0-9]{10}$/;
 
@@ -41,11 +43,10 @@ const HomeDetailScreen = ({route}) => {
     setIsDirty(true);
 
     const errors: ValidationErrors = {};
-    if (firstname.trim() === '') {
+    if (firstname.trim() === '' || !nameRegex.test(firstname)) {
       errors.firstname = 'First Name is required.';
     }
-
-    if (lastname.trim() === '') {
+    if (lastname.trim() === '' || !nameRegex.test(lastname)) {
       errors.lastname = 'Last Name is required.';
     }
     if (email.trim() === '') {
@@ -59,46 +60,51 @@ const HomeDetailScreen = ({route}) => {
     }
 
     setValidationErrors(errors);
-    if (Object.keys(errors).length === 0) {
-      handleSubmit();
-    }
+    return errors;
+    // if (Object.keys(errors).length === 0) {
+    //   handleSubmit();
+    //   setIsDirty(false);
+    // }
   };
 
   const handleSubmit = async () => {
-    console.log('helooo');
-    try {
-      const responseImage = await fetch(image);
-      const blob = await responseImage.blob();
+    if (Object.keys(handle_validation()).length === 0) {
+      try {
+        const responseImage = await fetch(image);
+        const blob = await responseImage.blob();
 
-      var formdata = new FormData();
-      formdata.append('first_name', firstname);
-      formdata.append('last_name', lastname);
-      formdata.append('email', email);
-      formdata.append('phone', phone);
-      formdata.append('user_image', blob._data, 'image.jpg');
+        var formdata = new FormData();
+        formdata.append('first_name', firstname);
+        formdata.append('last_name', lastname);
+        formdata.append('email', email);
+        formdata.append('phone', phone);
+        formdata.append('user_image', blob._data, 'image.jpg');
 
-      var requestOptions = {
-        method: 'POST',
-        body: formdata,
-        redirect: 'follow',
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      };
+        var requestOptions = {
+          method: 'POST',
+          body: formdata,
+          redirect: 'follow',
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        };
 
-      const responseFormData = await fetch(
-        'https://dev3.xicom.us/xttest/savedata.php',
-        requestOptions,
-      );
+        const responseFormData = await fetch(
+          'https://dev3.xicom.us/xttest/savedata.php',
+          requestOptions,
+        );
 
-      if (!responseFormData.ok) {
-        throw new Error(`HTTP error! status: ${responseFormData.status}`);
+        if (!responseFormData.ok) {
+          throw new Error(`HTTP error! status: ${responseFormData.status}`);
+        }
+        const responseData = await responseFormData.json();
+        console.log('Response:', responseData);
+        Alert.alert(responseData?.message);
+        navigation?.goBack();
+      } catch (error) {
+        console.error('Error:', error);
+        Alert.alert(error?.message);
       }
-      const responseData = await responseFormData.json();
-      console.log('Response:', responseData);
-      Alert.alert(responseData?.message);
-    } catch (error) {
-      console.error('Error:', error);
     }
   };
 
@@ -200,7 +206,7 @@ const HomeDetailScreen = ({route}) => {
         )}
 
         <Pressable
-          onPress={handle_validation}
+          onPress={handleSubmit}
           style={{
             paddingVertical: 15,
             marginHorizontal: 10,
