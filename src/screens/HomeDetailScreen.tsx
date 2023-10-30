@@ -6,11 +6,13 @@ import {
   StyleSheet,
   Pressable,
   ScrollView,
+  Alert,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import CustomTextInput from '../components/CustomTextInput';
 
 const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
 const HomeDetailScreen = ({route}) => {
   const image = route?.params?.image_data;
   const [loader, setLoader] = useState(false);
@@ -21,11 +23,13 @@ const HomeDetailScreen = ({route}) => {
     lastname?: string;
   }
 
+  const [imageSize, setImageSize] = useState({width: 0, height: 0});
+
   const [firstname, setFirstName] = useState<string>('');
   const [lastname, setLastName] = useState<string>('');
-
   const [email, setEmail] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
+  const [isDirty, setIsDirty] = useState(false);
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
     {},
   );
@@ -34,11 +38,13 @@ const HomeDetailScreen = ({route}) => {
   const phoneRegex = /^[0-9]{10}$/;
 
   const handle_validation = () => {
-    const errors: ValidationErrors = {};
+    setIsDirty(true);
 
+    const errors: ValidationErrors = {};
     if (firstname.trim() === '') {
       errors.firstname = 'First Name is required.';
     }
+
     if (lastname.trim() === '') {
       errors.lastname = 'Last Name is required.';
     }
@@ -59,6 +65,7 @@ const HomeDetailScreen = ({route}) => {
   };
 
   const handleSubmit = async () => {
+    console.log('helooo');
     try {
       const responseImage = await fetch(image);
       const blob = await responseImage.blob();
@@ -89,10 +96,29 @@ const HomeDetailScreen = ({route}) => {
       }
       const responseData = await responseFormData.json();
       console.log('Response:', responseData);
+      Alert.alert(responseData?.message);
     } catch (error) {
       console.error('Error:', error);
     }
   };
+
+  useEffect(() => {
+    Image.getSize(
+      image,
+      (width, height) => {
+        setImageSize({width, height});
+      },
+      error => {
+        console.error('Failed to get image size: ', error);
+      },
+    );
+  }, [image]);
+
+  useEffect(() => {
+    if (isDirty) {
+      handle_validation();
+    }
+  }, [firstname, lastname, email, phone]);
 
   return (
     <ScrollView
@@ -103,9 +129,8 @@ const HomeDetailScreen = ({route}) => {
       }}>
       <Image
         style={{
-          height: 250,
-          width: windowWidth,
-          resizeMode: 'stretch',
+          ...imageSize,
+          resizeMode: 'cover',
         }}
         source={{uri: image}}
       />

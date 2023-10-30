@@ -40,6 +40,33 @@ const HomeScreen = ({navigation}) => {
       .catch(error => console.log('error', error));
   };
 
+  const [imageSize, setImageSize] = useState([{width: 100, height: 100}]);
+
+  useEffect(() => {
+    const len = images_data.length;
+    if (len) {
+      for (let index = 0; index < len; index++) {
+        const element = images_data[index];
+
+        Image.getSize(
+          element?.xt_image,
+          (width, height) => {
+            setImageSize(prevState => {
+              let array = [...prevState];
+
+              array[index] = {width, height};
+
+              return array;
+            });
+          },
+          error => {
+            console.error('Failed to get image size: ', error);
+          },
+        );
+      }
+    }
+  }, [images_data]);
+
   useEffect(() => {
     get_data();
   }, [page]);
@@ -62,23 +89,19 @@ const HomeScreen = ({navigation}) => {
             />
           </>
         }
-        renderItem={({item}) => (
+        renderItem={({item, index}) => (
           <View
-          style={{
-            alignItems:'center'
-          }}
-          
-          >
+            style={{
+              alignItems: 'center',
+            }}>
             <Pressable
               onPress={() =>
                 navigation.navigate('HomeDetail', {image_data: item?.xt_image})
               }>
               <Image
                 style={{
-                  height: 250,
-                  width: windowWidth*0.9,
-                  resizeMode:'stretch',
-                  
+                  ...imageSize[index],
+                  resizeMode: 'cover',
                 }}
                 source={{uri: item?.xt_image}}
               />
